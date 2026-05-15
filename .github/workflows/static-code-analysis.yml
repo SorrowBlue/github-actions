@@ -45,11 +45,3 @@ jobs:
         with:
           sarif_file: ${{ matrix.sarif_file }}
           category: ${{ matrix.category }}
-
-  static-code-analysis-aggregate:
-    name: All Static Code Analysis Checks Passed
-    runs-on: ubuntu-latest
-    needs: [ analysis ]
-    steps:
-      - name: Confirm All Static Code Analysis Jobs Succeeded
-        run: echo "✅ All static code analysis jobs succeeded!"
