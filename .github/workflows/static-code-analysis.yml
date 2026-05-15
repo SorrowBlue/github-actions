@@ -20,8 +20,8 @@ permissions:
   security-events: write
 
 jobs:
-
   analysis:
+    name: Analysis / ${{ matrix.task }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
