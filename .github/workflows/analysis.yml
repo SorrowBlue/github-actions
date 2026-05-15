@@ -1,12 +1,54 @@
 name: Reusable Static Code Analysis
 on:
   workflow_call:
+    inputs:
+      analysis-matrix:
+        description: >
+          JSON array of objects with { task, sarif_file, category } for each analysis run.
+        type: string
+        required: true
+        default: >
+          [
+            {
+              "task": "reportMerge --continue",
+              "sarif_file": "build/reports/detekt/merge.sarif",
+              "category": "detekt"
+            },
+          ]
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
+
   analysis:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(inputs.analysis-matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Check if should run
-        run: echo "test"
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: 🔍️Run analysis
+        run: ./gradlew ${{ matrix.task }}
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        if: ${{ !cancelled() && matrix.sarif_file != '' && matrix.sarif_file != null }}
+        with:
+          sarif_file: ${{ matrix.sarif_file }}
+          category: ${{ matrix.category }}
+
+  static-code-analysis-aggregate:
+    name: All Static Code Analysis Checks Passed
+    runs-on: ubuntu-latest
+    needs: [ analysis ]
+    steps:
+      - name: Confirm All Static Code Analysis Jobs Succeeded
+        run: echo "✅ All static code analysis jobs succeeded!"
