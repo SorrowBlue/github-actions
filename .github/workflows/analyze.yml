@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze ${{ inputs.task }}
+    name: Analyze ${{ inputs.name || inputs.task }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
