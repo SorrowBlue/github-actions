@@ -2,62 +2,39 @@ name: Reusable Analyze
 on:
   workflow_call:
     inputs:
-      matrix-json:
-        description: JSON array of objects with { task, sarif_file, category } for each analyze run.
-        type: string
-        required: true
       config:
         description: 'Path to config JSON file'
         type: string
         default: '.github/java-gradle.json'
+      task:
+        description: 'Gradle task'
+        type: string
+        required: true
+      sarif_file:
+        type: string
+      category:
+        type: string
 
 permissions:
   contents: read
   security-events: write
 
 jobs:
-  setup-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix_data: ${{ steps.set-matrix.outputs.json_data }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: set-matrix
-        env:
-          MATRIX_JSON: ${{ inputs.matrix-json }}
-        run: |
-          JSON=$(cat $MATRIX_JSON | jq -c .)
-          echo "json_data=$JSON" >> $GITHUB_OUTPUT
-
   analyze:
-    name: Analyze ${{ matrix.config.name || matrix.config.task }}
-    needs: setup-matrix
+    name: Analyze ${{ inputs.task }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Load Configuration
-        id: config
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('${{ inputs.config }}', 'utf8'));
-            core.setOutput('java-version', config.java.version);
-            core.setOutput('java-distribution', config.java.distribution);
       - name: Setup Java and Gradle
         uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
-          java-version: ${{ inputs.java-version }}
-          distribution: ${{ inputs.java-distribution }}
+          config: ${{ inputs.config }}
       - name: 🔍️Run analyze
-        run: ./gradlew ${{ matrix.config.task }}
+        run: ./gradlew ${{ inputs.task }}
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba #v4.35.5
-        if: ${{ !cancelled() && matrix.config.sarif_file != '' && matrix.config.sarif_file != null }}
+        if: ${{ !cancelled() && inputs.sarif_file && inputs.category }}
         with:
-          sarif_file: ${{ matrix.config.sarif_file }}
-          category: ${{ matrix.config.category }}
+          sarif_file: ${{ inputs.sarif_file }}
+          category: ${{ inputs.category }}
