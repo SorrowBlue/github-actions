@@ -4,6 +4,7 @@ inputs:
   config:
     description: 'Path to config JSON file'
     required: true
+    default: '.github/java-gradle.json'
 
 runs:
   using: "composite"
