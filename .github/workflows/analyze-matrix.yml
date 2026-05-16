@@ -1,0 +1,55 @@
+name: Reusable Analyze
+on:
+  workflow_call:
+    inputs:
+      matrix-json:
+        description: JSON array of objects with { task, sarif_file, category } for each analyze run.
+        type: string
+        required: true
+      config:
+        description: 'Path to config JSON file'
+        type: string
+        default: '.github/java-gradle.json'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_data: ${{ steps.set-matrix.outputs.json_data }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Load Matrix
+        id: set-matrix
+        env:
+          MATRIX_JSON: ${{ inputs.matrix-json }}
+        run: |
+          JSON=$(cat $MATRIX_JSON | jq -c .)
+          echo "json_data=$JSON" >> $GITHUB_OUTPUT
+
+  analyze:
+    name: Analyze ${{ matrix.config.name || matrix.config.task }}
+    needs: setup-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Java and Gradle
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
+        with:
+          config: ${{ inputs.config }}
+      - name: 🔍️Run analyze analyze ${{ matrix.config.name || matrix.config.task }}
+        run: ./gradlew ${{ matrix.config.task }}
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba #v4.35.5
+        if: ${{ !cancelled() && matrix.config.sarif_file && matrix.config.category }}
+        with:
+          sarif_file: ${{ matrix.config.sarif_file }}
+          category: ${{ matrix.config.category }}
