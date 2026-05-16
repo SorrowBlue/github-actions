@@ -1,0 +1,51 @@
+name: Reusable Analyze
+on:
+  workflow_call:
+    inputs:
+      task:
+        description: 'Gradle task'
+        type: string
+        required: true
+      sarif_file:
+        description: 'Sarif file'
+        type: string
+        required: false
+      category:
+        description: 'Code scan category'
+        type: string
+        required: false
+      java-version:
+        description: 'Java version'
+        type: number
+        required: true
+        default: 21
+      java-distribution:
+        description: 'Java distribution'
+        type: string
+        required: true
+        default: 'temurin'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze ${{ inputs.task }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Java and Gradle
+        uses: ./.github/actions/setup-java-gradle
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
+      - name: 🔍️Run analyze
+        run: ./gradlew ${{ inputs.task }}
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba #v4.35.5
+        if: ${{ !cancelled() && inputs.sarif_file != '' && inputs.sarif_file != null }}
+        with:
+          sarif_file: ${{ inputs.sarif_file }}
+          category: ${{ inputs.category }}
