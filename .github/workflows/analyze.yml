@@ -31,7 +31,6 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze ${{ inputs.task }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
