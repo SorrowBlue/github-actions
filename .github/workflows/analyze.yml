@@ -49,7 +49,7 @@ jobs:
             core.setOutput('java-version', config.java.version);
             core.setOutput('java-distribution', config.java.distribution);
       - name: Setup Java and Gradle
-        uses: ./.github/actions/setup-java-gradle2
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
           java-version: ${{ inputs.java-version }}
           distribution: ${{ inputs.java-distribution }}
