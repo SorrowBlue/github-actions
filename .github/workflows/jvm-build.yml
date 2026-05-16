@@ -1,0 +1,37 @@
+name: Reusable Jvm Build
+on:
+  workflow_call:
+    inputs:
+      task:
+        type: string
+        required: true
+      runs-on:
+        type: string
+        default: 'ubuntu-latest'
+      output-name:
+        type: string
+        default: 'jvm'
+      output-path:
+        type: string
+        required: true
+      config:
+        description: 'Path to config JSON file'
+        type: string
+        default: '.github/java-gradle.json'
+jobs:
+  jvm-build:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Java and Gradle
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
+        with:
+          config: ${{ inputs.config }}
+      - name: Run ${{ inputs.task }}
+        run: ./gradlew ${{ inputs.task }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.output-name }}
+          path: ${{ inputs.output-path }}
