@@ -77,7 +77,6 @@ jobs:
         with:
           name: android-${{ inputs.track }}-release-files
           path: ${{ inputs.release-files }}
-          archive: false
       - name: Upload mapping file
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -95,21 +94,10 @@ jobs:
 #    outputs:
 #      internalSharingDownloadUrl: ${{ steps.upload.outputs.internalSharingDownloadUrl }}
     steps:
-      - name: Download release files
+      - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          name: android-${{ inputs.track }}-release-files
-          path: artifacts/release-files
-      - name: Download mapping file
-        uses: actions/download-artifact@v8
-        with:
-          name: android-${{ inputs.track }}-mapping-file
-          path: artifacts/mapping-file
-      - name: Upload debug symbols
-        uses: actions/download-artifact@v8
-        with:
-          name: android-${{ inputs.track }}-debug-symbols
-          path: artifacts/debug-symbols
+          path: artifacts/
       - name: Print
         run: |
           find ./artifacts
