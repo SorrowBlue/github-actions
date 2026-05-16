@@ -16,7 +16,7 @@ on:
       release-files:
         type: string
         required: true
-      track:
+      tracks:
         type: string
         required: true
       mapping-file:
@@ -75,17 +75,17 @@ jobs:
       - name: Upload release files
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: android-${{ inputs.track }}-release-files
+          name: android-release-files
           path: ${{ inputs.release-files }}
       - name: Upload mapping file
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: android-${{ inputs.track }}-mapping-file
+          name: android-mapping-file
           path: ${{ inputs.mapping-file }}
       - name: Upload debug symbols
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: android-${{ inputs.track }}-debug-symbols
+          name: android-debug-symbols
           path: ${{ inputs.debug-symbols }}
 
   publish:
@@ -113,7 +113,7 @@ jobs:
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: ${{ inputs.package-name }}
-          releaseFiles: ./artifacts/android-${{ inputs.track }}-release-files/*
-          track: ${{ inputs.track }}
-          mappingFile: ./artifacts/android-${{ inputs.track }}-mapping-file/mapping.txt
-          debugSymbols: ./artifacts/android-${{ inputs.track }}-debug-symbols/
+          releaseFiles: ./artifacts/android-release-files/*
+          tracks: ${{ inputs.tracks }}
+          mappingFile: ./artifacts/android-mapping-file/mapping.txt
+          debugSymbols: ./artifacts/android-debug-symbols/
