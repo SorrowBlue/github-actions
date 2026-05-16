@@ -2,18 +2,10 @@ name: Reusable Analyze
 on:
   workflow_call:
     inputs:
-      task:
-        description: 'Gradle task'
+      matrix-json:
+        description: JSON array of objects with { task, sarif_file, category } for each analyze run.
         type: string
         required: true
-      sarif_file:
-        description: 'Sarif file'
-        type: string
-        required: false
-      category:
-        description: 'Code scan category'
-        type: string
-        required: false
       java-version:
         description: 'Java version'
         type: number
@@ -30,8 +22,25 @@ permissions:
   security-events: write
 
 jobs:
-  analyze:
+  setup-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix_data: ${{ steps.set-matrix.outputs.json_data }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        env:
+          MATRIX_JSON: ${{ inputs.matrix-json }}
+        run: |
+          JSON=$(cat $MATRIX_JSON | jq -c .)
+          echo "json_data=$JSON" >> $GITHUB_OUTPUT
+
+  analyze:
+    name: Analyze ${{ matrix.task }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -41,10 +50,10 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: ${{ inputs.java-distribution }}
       - name: 🔍️Run analyze
-        run: ./gradlew ${{ inputs.task }}
+        run: ./gradlew ${{ matrix.config.task }}
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba #v4.35.5
-        if: ${{ !cancelled() && inputs.sarif_file != '' && inputs.sarif_file != null }}
+        if: ${{ !cancelled() && matrix.config.sarif_file != '' && matrix.config.sarif_file != null }}
         with:
-          sarif_file: ${{ inputs.sarif_file }}
-          category: ${{ inputs.category }}
+          sarif_file: ${{ matrix.config.sarif_file }}
+          category: ${{ matrix.config.category }}
