@@ -19,6 +19,9 @@ on:
       tracks:
         type: string
         required: true
+      status:
+        type: string
+        default: 'completed'
       mapping-file:
         type: string
         required: true
