@@ -30,35 +30,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Load Config
-        id: config
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('${{ inputs.config }}', 'utf8'));
-            core.setOutput('java-version', config.java.version);
-            core.setOutput('java-distribution', config.java.distribution);
       - name: Setup Java and Gradle
         uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
-          java-version: ${{ steps.config.outputs.java-version }}
-          java-distribution: ${{ steps.config.outputs.java-distribution }}
+          config: ${{ inputs.config }}
       - name: Decode android keystore file
         id: android_keystore
-        uses: timheuer/base64-to-file@v2
+        uses: timheuer/base64-to-file@dfa5a5dd38803cb4f5c3a081eeb28e8362d43e9c # v2
         with:
           fileName: 'android_keystore.jks'
           encodedString: ${{ secrets.ANDROID_STORE_FILE_BASE64 }}
-      - name: Run bundleRelease
+      - name: Run ${{ inputs.task }}
         run: ./gradlew ${{ inputs.task }}
         env:
           ORG_GRADLE_PROJECT_androidSigningStoreFile: ${{ steps.android_keystore.outputs.filePath }}
           ORG_GRADLE_PROJECT_androidSigningStorePassword: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ORG_GRADLE_PROJECT_androidSigningKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_androidSigningKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      - name: Upload AAB to Internal App Sharing
-        uses: actions/upload-artifact@v7
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android
           path: ${{ inputs.output-path }}
