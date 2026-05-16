@@ -2,12 +2,14 @@ name: Reusable Jvm Build
 on:
   workflow_call:
     inputs:
-      task:
-        type: string
-        required: true
       runs-on:
         type: string
         default: 'ubuntu-latest'
+      name:
+        type: string
+      task:
+        type: string
+        required: true
       output-name:
         type: string
         default: 'jvm'
@@ -20,6 +22,7 @@ on:
         default: '.github/java-gradle.json'
 jobs:
   jvm-build:
+    name: ${{ inputs.name }}
     runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Checkout
