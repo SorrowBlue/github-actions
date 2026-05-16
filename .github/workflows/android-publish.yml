@@ -114,6 +114,6 @@ jobs:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: ${{ inputs.package-name }}
           releaseFiles: ./artifacts/android-${{ inputs.track }}-release-files/*
-          track: ${{ track }}
+          track: ${{ inputs.track }}
           mappingFile: ./artifacts/android-${{ inputs.track }}-mapping-file/mapping.txt
           debugSymbols: ./artifacts/android-${{ inputs.track }}-debug-symbols/
