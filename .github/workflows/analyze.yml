@@ -6,6 +6,8 @@ on:
         description: 'Path to config JSON file'
         type: string
         default: '.github/java-gradle.json'
+      name:
+        type: string
       task:
         description: 'Gradle task'
         type: string
@@ -30,7 +32,7 @@ jobs:
         uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
           config: ${{ inputs.config }}
-      - name: 🔍️Run analyze
+      - name: 🔍️Run analyze ${{ inputs.name || inputs.task }}
         run: ./gradlew ${{ inputs.task }}
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba #v4.35.5
