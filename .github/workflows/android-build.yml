@@ -12,7 +12,6 @@ on:
         required: true
       config:
         description: 'Path to config JSON file'
-        required: true
         type: string
         default: '.github/java-gradle.json'
     secrets:
