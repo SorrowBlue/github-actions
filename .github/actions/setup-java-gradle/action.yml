@@ -4,11 +4,9 @@ inputs:
   java-version:
     description: 'Java version'
     required: true
-    default: '21'
   java-distribution:
     description: 'Java distribution'
     required: true
-    default: 'temurin'
 
 runs:
   using: "composite"

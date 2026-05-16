@@ -43,7 +43,7 @@ jobs:
         uses: ./.github/actions/setup-java-gradle
         with:
           java-version: ${{ steps.config.outputs.java-version }}
-          distribution: ${{ steps.config.outputs.java-distribution }}
+          java-distribution: ${{ steps.config.outputs.java-distribution }}
       - name: Decode android keystore file
         id: android_keystore
         uses: timheuer/base64-to-file@v2
