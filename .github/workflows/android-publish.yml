@@ -1,0 +1,130 @@
+name: Reusable Android Build
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+      fetch-depth:
+        type: number
+        default: 1
+      task:
+        type: string
+        required: true
+      package-name:
+        type: string
+        required: true
+      release-files:
+        type: string
+        required: true
+      track:
+        type: string
+        required: true
+      mapping-file:
+        type: string
+        required: true
+      debug-symbols:
+        type: string
+        required: true
+      config:
+        description: 'Path to config JSON file'
+        type: string
+        default: '.github/java-gradle.json'
+    outputs:
+      internalSharingDownloadUrl:
+        description: Google Play internal sharing download URL
+        value: ${{ jobs.publish.outputs.internalSharingDownloadUrl }}
+    secrets:
+      ANDROID_STORE_FILE_BASE64:
+        required: true
+      ANDROID_STORE_PASSWORD:
+        required: true
+      ANDROID_KEY_ALIAS:
+        required: true
+      ANDROID_KEY_PASSWORD:
+        required: true
+      GOOGLE_WORKLOAD_IDENTITY_PROVIDER:
+        required: true
+      GOOGLE_SERVICE_ACCOUNT:
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+      - name: Setup Java and Gradle
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
+        with:
+          config: ${{ inputs.config }}
+      - name: Decode android keystore file
+        id: android_keystore
+        uses: timheuer/base64-to-file@dfa5a5dd38803cb4f5c3a081eeb28e8362d43e9c # v2
+        with:
+          fileName: 'android_keystore.jks'
+          encodedString: ${{ secrets.ANDROID_STORE_FILE_BASE64 }}
+      - name: Run ${{ inputs.task }}
+        run: ./gradlew ${{ inputs.task }}
+        env:
+          ORG_GRADLE_PROJECT_androidSigningStoreFile: ${{ steps.android_keystore.outputs.filePath }}
+          ORG_GRADLE_PROJECT_androidSigningStorePassword: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_androidSigningKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_androidSigningKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Upload release files
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-${{ inputs.track }}-release-files
+          path: ${{ inputs.release-files }}
+          archive: false
+      - name: Upload mapping file
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-${{ inputs.track }}-mapping-file
+          path: ${{ inputs.mapping-file }}
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-${{ inputs.track }}-debug-symbols
+          path: ${{ inputs.debug-symbols }}
+
+  publish:
+    runs-on: ubuntu-latest
+    outputs:
+      internalSharingDownloadUrl: ${{ steps.upload.outputs.internalSharingDownloadUrl }}
+    steps:
+      - name: Download release files
+        uses: actions/download-artifact@v8
+        with:
+          name: android-${{ inputs.track }}-release-files
+          path: artifacts/release-files
+      - name: Download mapping file
+        uses: actions/download-artifact@v8
+        with:
+          name: android-${{ inputs.track }}-mapping-file
+          path: artifacts/mapping-file
+      - name: Upload debug symbols
+        uses: actions/download-artifact@v8
+        with:
+          name: android-${{ inputs.track }}-debug-symbols
+          path: artifacts/debug-symbols
+      - name: Print
+        run: |
+          find ./artifacts
+#      - name: Authenticate to Google Cloud
+#        id: auth
+#        uses: google-github-actions/auth@v3
+#        with:
+#          workload_identity_provider: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+#          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+#      - name: Upload to Google Play
+#        id: upload
+#        uses: r0adkll/upload-google-play@v1
+#        with:
+#          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+#          packageName: ${{ inputs.package-name }}
+#          releaseFiles: ${{ release-files }}
+#          track: ${{ track }}
+#          mappingFile: ${{ mapping-file }}
+#          debugSymbols: ${{ debug-symbols }}
