@@ -36,7 +36,7 @@ jobs:
           echo "json_data=$JSON" >> $GITHUB_OUTPUT
 
   analyze:
-    name: Analyze ${{ matrix.task }}
+    name: Analyze Analyze ${{ matrix.config.name || matrix.config.task }}
     needs: setup-matrix
     runs-on: ubuntu-latest
     strategy:
