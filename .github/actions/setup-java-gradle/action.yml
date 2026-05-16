@@ -18,7 +18,7 @@ runs:
           const config = JSON.parse(fs.readFileSync('${{ inputs.config }}', 'utf8'));
           core.setOutput('java-version', config.java.version);
           core.setOutput('java-distribution', config.java.distribution);
-    - name: Setup Java (${{ inputs.java-distribution }} ${{ inputs.java-version }})
+    - name: Setup Java (${{ steps.config.outputs.java-distribution }} ${{ steps.config.outputs.java-version }})
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
         java-version: ${{ steps.config.outputs.java-version }}
