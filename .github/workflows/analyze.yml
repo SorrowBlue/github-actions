@@ -37,6 +37,7 @@ jobs:
 
   analyze:
     name: Analyze ${{ matrix.task }}
+    needs: setup-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
