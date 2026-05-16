@@ -101,19 +101,19 @@ jobs:
       - name: Print
         run: |
           find ./artifacts
-#      - name: Authenticate to Google Cloud
-#        id: auth
-#        uses: google-github-actions/auth@v3
-#        with:
-#          workload_identity_provider: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
-#          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-#      - name: Upload to Google Play
-#        id: upload
-#        uses: r0adkll/upload-google-play@v1
-#        with:
-#          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
-#          packageName: ${{ inputs.package-name }}
-#          releaseFiles: ${{ release-files }}
-#          track: ${{ track }}
-#          mappingFile: ${{ mapping-file }}
-#          debugSymbols: ${{ debug-symbols }}
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+      - name: Upload to Google Play
+        id: upload
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+          packageName: ${{ inputs.package-name }}
+          releaseFiles: ./artifacts/android-${{ inputs.track }}-release-files/*
+          track: ${{ track }}
+          mappingFile: ./artifacts/android-${{ inputs.track }}-mapping-file/mapping.txt
+          debugSymbols: ./artifacts/android-${{ inputs.track }}-debug-symbols/
