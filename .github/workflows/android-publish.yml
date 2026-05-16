@@ -33,19 +33,19 @@ on:
       internalSharingDownloadUrl:
         description: Google Play internal sharing download URL
         value: ${{ jobs.publish.outputs.internalSharingDownloadUrl }}
-    secrets:
-      ANDROID_STORE_FILE_BASE64:
-        required: true
-      ANDROID_STORE_PASSWORD:
-        required: true
-      ANDROID_KEY_ALIAS:
-        required: true
-      ANDROID_KEY_PASSWORD:
-        required: true
-      GOOGLE_WORKLOAD_IDENTITY_PROVIDER:
-        required: true
-      GOOGLE_SERVICE_ACCOUNT:
-        required: true
+#    secrets:
+#      ANDROID_STORE_FILE_BASE64:
+#        required: true
+#      ANDROID_STORE_PASSWORD:
+#        required: true
+#      ANDROID_KEY_ALIAS:
+#        required: true
+#      ANDROID_KEY_PASSWORD:
+#        required: true
+#      GOOGLE_WORKLOAD_IDENTITY_PROVIDER:
+#        required: true
+#      GOOGLE_SERVICE_ACCOUNT:
+#        required: true
 jobs:
   build:
     runs-on: ubuntu-latest
