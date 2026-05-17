@@ -44,12 +44,11 @@ jobs:
           echo "json_data=$JSON" >> $GITHUB_OUTPUT
 
   jvm-build:
-    name: ${{ inputs.name }}
     needs: setup-matrix
     strategy:
       matrix:
         config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
-    runs-on: ${{ metrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -64,7 +63,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-${{ metrix.config.target }}-${{ metrix.config.arch }}
+          name: build-${{ matrix.config.target }}-${{ matrix.config.arch }}
           path: pdf/desktopApp/build/all-libs
 
   deploy:
