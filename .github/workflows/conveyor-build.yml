@@ -61,7 +61,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${{ inputs.override-tag }}" "$GITHUB_SHA"
-
       - name: Setup Java and Gradle
         uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
@@ -83,6 +82,14 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
+      - name: Create local tag
+        if: ${{ inputs.override-tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ inputs.override-tag }}" "$GITHUB_SHA"
       - name: Setup JDK and Gradle
         uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
         with:
