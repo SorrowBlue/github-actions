@@ -1,11 +1,12 @@
 name: Reusable Conveyor Build
 on:
   workflow_call:
-    environment:
-      type: string
     inputs:
       name:
         type: string
+      environment:
+        type: string
+        default: ''
       matrix-json:
         description: JSON array of objects with { task, sarif_file, category } for each analyze run.
         type: string
