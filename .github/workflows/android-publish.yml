@@ -93,6 +93,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     needs: build
     outputs:
       internalSharingDownloadUrl: ${{ steps.upload.outputs.internalSharingDownloadUrl }}
