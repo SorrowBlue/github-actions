@@ -43,6 +43,7 @@ jobs:
     strategy:
       matrix:
         config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
+    name: ${{ matrix.config.target }}
     runs-on: ${{ matrix.config.os }}
     steps:
       - name: Checkout
