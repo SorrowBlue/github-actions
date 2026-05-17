@@ -1,0 +1,106 @@
+name: Reusable Conveyor Build
+on:
+  workflow_call:
+    environment:
+      type: string
+    inputs:
+      name:
+        type: string
+      matrix-json:
+        description: JSON array of objects with { task, sarif_file, category } for each analyze run.
+        type: string
+        required: true
+      task:
+        type: string
+        required: true
+      fetch-depth:
+        type: number
+        default: 1
+      output-name:
+        type: string
+        default: 'jvm'
+      output-path:
+        type: string
+        required: true
+      config:
+        description: 'Path to config JSON file'
+        type: string
+        default: '.github/java-gradle.json'
+jobs:
+
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_data: ${{ steps.set-matrix.outputs.json_data }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Load Matrix
+        id: set-matrix
+        env:
+          MATRIX_JSON: ${{ inputs.matrix-json }}
+        run: |
+          JSON=$(cat $MATRIX_JSON | jq -c .)
+          echo "json_data=$JSON" >> $GITHUB_OUTPUT
+
+  jvm-build:
+    name: ${{ inputs.name }}
+    needs: setup-matrix
+    strategy:
+      matrix:
+        config: ${{ fromJSON(needs.setup-matrix.outputs.matrix_data) }}
+    runs-on: ${{ metrix.config.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+      - name: Setup Java and Gradle
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
+        with:
+          config: ${{ inputs.config }}
+      - name: Run ${{ inputs.task }}
+        run: ./gradlew ${{ inputs.task }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: build-${{ metrix.config.target }}-${{ metrix.config.arch }}
+          path: pdf/desktopApp/build/all-libs
+
+  deploy:
+    needs: jvm-build
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+      - name: Setup JDK and Gradle
+        uses: SorrowBlue/github-actions/.github/actions/setup-java-gradle@main
+        with:
+          config: ${{ inputs.config }}
+      - name: Download Windows build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: build-windows-amd64
+          path: ./artifacts/windows
+      - name: Download Linux build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: build-linux-amd64
+          path: ./artifacts/linux
+      - name: Run Conveyor
+        uses: hydraulic-software/conveyor/actions/build@9e90ce7c2a4356c99d68c63f41e4bc497da279c8 # v22.0
+        env:
+          CONVEYOR_PASSPHRASE: ${{ secrets.CONVEYOR_PASSPHRASE  }}
+        with:
+          command: -f ci.conveyor.conf make site
+          extra_flags: '--passphrase=env:CONVEYOR_PASSPHRASE'
+          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+          agree_to_license: 1
+      - name: Upload conveyor artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: conveyor-output
+          path: output/*
