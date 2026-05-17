@@ -17,12 +17,6 @@ on:
       fetch-depth:
         type: number
         default: 1
-      output-name:
-        type: string
-        default: 'jvm'
-      output-path:
-        type: string
-        required: true
       config:
         description: 'Path to config JSON file'
         type: string
