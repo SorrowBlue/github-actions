@@ -84,6 +84,8 @@ jobs:
         with:
           name: build-linux-amd64
           path: ./artifacts/linux
+      - name: Run printConveyorConfig
+        run: ./gradlew printConveyorConfig
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@9e90ce7c2a4356c99d68c63f41e4bc497da279c8 # v22.0
         env:
