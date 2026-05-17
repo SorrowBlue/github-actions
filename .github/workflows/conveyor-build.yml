@@ -55,6 +55,7 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
       - name: Create local tag
         if: ${{ inputs.override-tag }}
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
