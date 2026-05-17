@@ -118,5 +118,6 @@ jobs:
           packageName: ${{ inputs.package-name }}
           releaseFiles: ./artifacts/android-release-files/*
           tracks: ${{ inputs.tracks }}
+          status: ${{ inputs.status }}
           mappingFile: ./artifacts/android-mapping-file/mapping.txt
           debugSymbols: ./artifacts/android-debug-symbols/
